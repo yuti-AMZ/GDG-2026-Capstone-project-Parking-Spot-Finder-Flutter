@@ -13,8 +13,12 @@ class AuthService {
         "password": password,
       }),
     );
-
+    try{
     return jsonDecode(response.body);
+    }catch(e){
+      print("Login response is not JSON: ${response.body}");
+      return {"success": false, "error": "Invalid response from server"};
+    }
   }
  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
   final response = await http.post(
@@ -30,7 +34,7 @@ class AuthService {
 }
 Future<Map<String, dynamic>> sendOtp(String email) async {
   final response = await http.post(
-    Uri.parse("$baseUrl/send-otp"),
+    Uri.parse("$baseUrl/forgot-password"),
     headers: {"Content-Type": "application/json"},
     body: jsonEncode({
       "email": email,

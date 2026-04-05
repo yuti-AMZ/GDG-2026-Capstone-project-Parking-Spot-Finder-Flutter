@@ -1,6 +1,6 @@
+import 'package:capstone/login.dart';
 import 'package:flutter/material.dart';
 
-import 'otpscreen.dart';
 import 'service/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -15,28 +15,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   bool isLoading = false;
 
-void sendResetCode() async {
-  if (emailController.text.isEmpty) return;
+  void sendResetCode() async {
+    if (emailController.text.isEmpty) return;
 
-  setState(() => isLoading = true);
+    setState(() => isLoading = true);
 
-  final response = await authService.sendOtp(emailController.text);
+    final response=await authService.sendOtp(emailController.text); 
 
-  setState(() => isLoading = false);
-
-  if (response["success"] == true) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OtpScreen(email: emailController.text),
-      ),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(response["error"] ?? "Failed to send OTP")),
-    );
+    if (!response.containsKey("error")){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Reset link sent to your email")),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LoginScreen(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response["error"] ?? "Failed to send code")),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {

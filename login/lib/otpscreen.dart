@@ -33,7 +33,7 @@ void verifyOtp() async {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ResetPasswordScreen(),
+        builder: (_) => ResetPasswordScreen(email: widget.email),
       ),
     );
   } else {
@@ -57,7 +57,7 @@ void verifyOtp() async {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ResetPasswordScreen(email:widget.email))),
                 ),
                 const Text(
                   "Verify Code",
