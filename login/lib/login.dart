@@ -3,7 +3,7 @@ import 'package:capstone/home.dart';
 import 'package:capstone/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,32 +20,35 @@ class _LoginScreenState extends State<LoginScreen> {
  bool isLoading = false;
  String? errorMessage;
   bool isPasswordHidden = true;
-
 void handleLogin() async {
-  setState(() {
-    isLoading = true;
-    errorMessage = null;
-  });
+  setState(() => isLoading = true);
 
   final response = await authService.login(
     emailController.text,
     passwordController.text,
   );
 
-  setState(() {
-    isLoading = false;
-  });
+  setState(() => isLoading = false);
 
-  if (!response.success) {
+  if (response.containsKey("accessToken")) {
+    
+    // ✅ STORE TOKENS HERE
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("accessToken", response["accessToken"]);
+    await prefs.setString("refreshToken", response["refreshToken"]);
+
+    // THEN navigate
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_)=>HomePage()),
+      MaterialPageRoute(builder: (_) => HomePage()),
     );
-  }
-    else{
-    setState(() {
-      errorMessage = response.message;
-    });
+
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(response["error"] ?? "Login failed"),
+      ),
+    );
   }
 }
 
@@ -116,6 +119,7 @@ void handleLogin() async {
               const SizedBox(height: 8),
 
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
                   hintText: "name@example.com",
                   prefixIcon: const Icon(Icons.email),
@@ -136,6 +140,7 @@ void handleLogin() async {
               const SizedBox(height: 8),
 
               TextField(
+                controller: passwordController,
                 obscureText: isPasswordHidden,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock),

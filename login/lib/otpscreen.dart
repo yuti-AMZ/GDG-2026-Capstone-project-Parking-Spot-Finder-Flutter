@@ -22,11 +22,14 @@ void verifyOtp() async {
 
   setState(() => isLoading = true);
 
-  final response = await authService.verifyOtp(otpController.text);
+  final response = await authService.verifyOtp(
+    widget.email,
+    otpController.text,
+  );
 
   setState(() => isLoading = false);
 
-  if (response.success) {
+  if (!response.containsKey("error")) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -35,7 +38,7 @@ void verifyOtp() async {
     );
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Invalid OTP")),
+      SnackBar(content: Text(response["error"] ?? "Invalid OTP")),
     );
   }
 }

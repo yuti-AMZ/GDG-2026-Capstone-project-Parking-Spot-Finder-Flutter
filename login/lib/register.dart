@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../service/auth_service.dart';
+import 'login.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -10,11 +12,19 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   bool obscurePassword = true;
 
+   final AuthService authService = AuthService();
+
+  final TextEditingController nameController = TextEditingController();
+final TextEditingController emailController = TextEditingController();
+final TextEditingController passwordController = TextEditingController();
+final TextEditingController confirmPasswordController = TextEditingController();
+
   Widget buildTextField({
     required String hint,
     required IconData icon,
     bool isPassword = false,
     Widget? suffix,
+    TextEditingController? controller,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -24,6 +34,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         borderRadius: BorderRadius.circular(14),
       ),
       child: TextField(
+        controller: controller,
         obscureText: isPassword ? obscurePassword : false,
         decoration: InputDecoration(
           border: InputBorder.none,
@@ -76,22 +87,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 buildTextField(
                   hint: "John Doe",
                   icon: Icons.person,
+                  controller: nameController,
                 ),
 
                 buildTextField(
                   hint: "name@example.com",
                   icon: Icons.email,
+                  controller: emailController,
                 ),
 
                 buildTextField(
                   hint: "Password",
                   icon: Icons.lock,
+                  controller: passwordController,
                   isPassword: true,
                   suffix: IconButton(
                     icon: Icon(
                       obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
+
                     ),
                     onPressed: () {
                       setState(() {
@@ -105,6 +120,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   hint: "Confirm Password",
                   icon: Icons.check_circle,
                   isPassword: true,
+                  controller: confirmPasswordController,
                 ),
 
                 const SizedBox(height: 25),
@@ -123,13 +139,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async{
+                      if (passwordController.text != confirmPasswordController.text) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                           SnackBar(content: Text("Passwords do not match")),
+                        );
+                        return;
+                      }
+                      final response = await authService.register(
+                        nameController.text,
+                        emailController.text,
+                        passwordController.text,
+                      );
+                      if (response.containsKey("accessToken")) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Registration successful! Please log in.")),
+                        );
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginScreen()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(response["error"] ?? "Registration failed")),
+                        );
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                     ),
                     child: const Text(
-                      "Sign Up →",
+                      "Sign Up ",
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -157,20 +199,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 25),
 
                 Center(
-                  child: Text.rich(
-                    TextSpan(
-                      text: "Already have an account? ",
-                      children: [
-                        TextSpan(
-                          text: "Login",
-                          style: TextStyle(
-                            color: Colors.deepOrange,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child:
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text("Already have an account?"),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => LoginScreen()),
+                          );
+                        },
+                        child: const Text("Log In"),
+                      )
+                    ],
+                  )
                 ),
 
                 const SizedBox(height: 20),

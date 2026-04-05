@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'otpscreen.dart';
+import 'service/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -10,25 +11,32 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final authService = AuthService();
   final emailController = TextEditingController();
   bool isLoading = false;
 
-  void sendResetCode() async {
-    if (emailController.text.isEmpty) return;
+void sendResetCode() async {
+  if (emailController.text.isEmpty) return;
 
-    setState(() => isLoading = true);
+  setState(() => isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 1)); // mock
+  final response = await authService.sendOtp(emailController.text);
 
-    setState(() => isLoading = false);
+  setState(() => isLoading = false);
 
+  if (response["success"] == true) {
     Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => OtpScreen(email: emailController.text),
-  ),
-);
+      context,
+      MaterialPageRoute(
+        builder: (_) => OtpScreen(email: emailController.text),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response["error"] ?? "Failed to send OTP")),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

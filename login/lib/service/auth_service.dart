@@ -1,35 +1,58 @@
-import '../model/authresponse.dart';
-import '../model/otpresponse.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AuthService {
-  Future<AuthResponse> login(String email, String password) async {
-    await Future.delayed(Duration(seconds: 1));
+  final String baseUrl = "http://localhost:5000/api/v1/auth";
 
-    return AuthResponse(
-      success: true,
-      token: "mock_token_123",
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/login"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": email,
+        "password": password,
+      }),
     );
+
+    return jsonDecode(response.body);
   }
+ Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
+  final response = await http.post(
+    Uri.parse("$baseUrl/verify-otp"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "email": email,
+      "otp": otp,
+    }),
+  );
 
-  Future<AuthResponse> sendOtp(String email) async {
-    await Future.delayed(Duration(seconds: 1));
+  return jsonDecode(response.body);
+}
+Future<Map<String, dynamic>> sendOtp(String email) async {
+  final response = await http.post(
+    Uri.parse("$baseUrl/send-otp"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "email": email,
+    }),
+  );
 
-    return AuthResponse(success: true);
-  }
+  return jsonDecode(response.body);
+}
 
-  Future<OtpResponse> verifyOtp(String otp) async {
-    await Future.delayed(Duration(seconds: 1));
-
-    return OtpResponse(
-      success: true,
-      resetToken: "mock_reset_token",
+  Future<Map<String, dynamic>> register(
+      String name, String email, String password) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/register"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "fullName": name,
+        "email": email,
+        "password": password,
+        "role": "user"
+      }),
     );
-  }
 
-  Future<AuthResponse> resetPassword(
-      String password, String token) async {
-    await Future.delayed(Duration(seconds: 1));
-
-    return AuthResponse(success: true);
+    return jsonDecode(response.body);
   }
 }
