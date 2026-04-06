@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../service/auth_service.dart';
-import 'login.dart';
+
+import '../../service/auth_service.dart';
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -11,13 +12,22 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   bool obscurePassword = true;
-
-   final AuthService authService = AuthService();
+  final AuthService authService = AuthService();
 
   final TextEditingController nameController = TextEditingController();
-final TextEditingController emailController = TextEditingController();
-final TextEditingController passwordController = TextEditingController();
-final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   Widget buildTextField({
     required String hint,
@@ -46,6 +56,38 @@ final TextEditingController confirmPasswordController = TextEditingController();
     );
   }
 
+  Future<void> _handleSignUp() async {
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    final response = await authService.register(
+      nameController.text,
+      emailController.text,
+      passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (response.containsKey('accessToken')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful! Please log in.')),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response['error'] ?? 'Registration failed')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,47 +99,37 @@ final TextEditingController confirmPasswordController = TextEditingController();
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),              
-
-
-                // Title
+                const SizedBox(height: 10),
                 const Text(
-                  "Parkify",
+                  'Parkify',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Colors.deepOrange,
                   ),
                 ),
-
                 const SizedBox(height: 5),
-
                 const Text(
-                  "Join the flow of the city.",
+                  'Join the flow of the city.',
                   style: TextStyle(color: Colors.grey),
                 ),
                 const Text(
-                  "Find your spot in seconds.",
+                  'Find your spot in seconds.',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
-
                 const SizedBox(height: 25),
-
-                // Inputs
                 buildTextField(
-                  hint: "John Doe",
+                  hint: 'John Doe',
                   icon: Icons.person,
                   controller: nameController,
                 ),
-
                 buildTextField(
-                  hint: "name@example.com",
+                  hint: 'name@example.com',
                   icon: Icons.email,
                   controller: emailController,
                 ),
-
                 buildTextField(
-                  hint: "Password",
+                  hint: 'Password',
                   icon: Icons.lock,
                   controller: passwordController,
                   isPassword: true,
@@ -106,7 +138,6 @@ final TextEditingController confirmPasswordController = TextEditingController();
                       obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
-
                     ),
                     onPressed: () {
                       setState(() {
@@ -115,17 +146,13 @@ final TextEditingController confirmPasswordController = TextEditingController();
                     },
                   ),
                 ),
-
                 buildTextField(
-                  hint: "Confirm Password",
+                  hint: 'Confirm Password',
                   icon: Icons.check_circle,
                   isPassword: true,
                   controller: confirmPasswordController,
                 ),
-
                 const SizedBox(height: 25),
-
-                // Sign Up Button
                 Container(
                   width: double.infinity,
                   height: 55,
@@ -139,84 +166,52 @@ final TextEditingController confirmPasswordController = TextEditingController();
                     ),
                   ),
                   child: ElevatedButton(
-                    onPressed: () async{
-                      if (passwordController.text != confirmPasswordController.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                           SnackBar(content: Text("Passwords do not match")),
-                        );
-                        return;
-                      }
-                      final response = await authService.register(
-                        nameController.text,
-                        emailController.text,
-                        passwordController.text,
-                      );
-                      if (response.containsKey("accessToken")) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Registration successful! Please log in.")),
-                        );
-
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => LoginScreen()),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(response["error"] ?? "Registration failed")),
-                        );
-                      }
-                    },
+                    onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                     ),
                     child: const Text(
-                      "Sign Up ",
+                      'Sign Up',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 const Center(
                   child: Text(
-                    "OR CONTINUE WITH",
+                    'OR CONTINUE WITH',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    socialButton("Google"),
-                    socialButton("Apple"),
+                    socialButton('Google'),
+                    socialButton('Apple'),
                   ],
                 ),
-
                 const SizedBox(height: 25),
-
                 Center(
-                  child:
-                  Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text("Already have an account?"),
+                      const Text('Already have an account?'),
                       TextButton(
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (_) => LoginScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
                           );
                         },
-                        child: const Text("Log In"),
+                        child: const Text('Log In'),
                       )
                     ],
-                  )
+                  ),
                 ),
-
                 const SizedBox(height: 20),
               ],
             ),

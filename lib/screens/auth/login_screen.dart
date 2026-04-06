@@ -1,9 +1,11 @@
-import 'package:capstone/forgot_password.dart';
-import 'package:capstone/home.dart';
-import 'package:capstone/service/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../service/auth_service.dart';
+import '../home/home_page.dart';
+import 'forgot_password_screen.dart';
+import 'register_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -12,45 +14,52 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final authService = AuthService();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
- final authService = AuthService();
- final emailController = TextEditingController();
- final passwordController = TextEditingController();
-
- bool isLoading = false;
- String? errorMessage;
+  bool isLoading = false;
+  String? errorMessage;
   bool isPasswordHidden = true;
-void handleLogin() async {
-  setState(() => isLoading = true);
 
-  final response = await authService.login(
-    emailController.text,
-    passwordController.text,
-  );
+  Future<void> handleLogin() async {
+    setState(() => isLoading = true);
 
-  setState(() => isLoading = false);
-
-  if (response.containsKey("accessToken")) {
-    
-    // ✅ STORE TOKENS HERE
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("accessToken", response["accessToken"]);
-    await prefs.setString("refreshToken", response["refreshToken"]);
-
-    // THEN navigate
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => HomePage()),
+    final response = await authService.login(
+      emailController.text,
+      passwordController.text,
     );
 
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(response["error"] ?? "Login failed"),
-      ),
-    );
+    if (!mounted) return;
+    setState(() => isLoading = false);
+
+    final dynamic data = response['data'];
+    final String? accessToken = response['accessToken'] ??
+        (data is Map<String, dynamic> ? data['accessToken'] : null);
+    final String? refreshToken = response['refreshToken'] ??
+        (data is Map<String, dynamic> ? data['refreshToken'] : null);
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('accessToken', accessToken);
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await prefs.setString('refreshToken', refreshToken);
+      }
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } else {
+      final serverError = response['error'] ?? response['message'];
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(serverError ?? 'Login failed'),
+        ),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -62,16 +71,13 @@ void handleLogin() async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               const SizedBox(height: 20),
-
-              // Logo
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
                     Text(
-                      "P",
+                      'P',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -80,7 +86,7 @@ void handleLogin() async {
                     ),
                     SizedBox(width: 5),
                     Text(
-                      "Parkify",
+                      'Parkify',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -89,39 +95,29 @@ void handleLogin() async {
                   ],
                 ),
               ),
-
               const SizedBox(height: 40),
-
-              // Welcome
               const Text(
-                "Welcome Back",
+                'Welcome Back',
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 8),
-
               const Text(
-                "Find your spot in seconds. Log in to continue your journey.",
+                'Find your spot in seconds. Log in to continue your journey.',
                 style: TextStyle(
                   color: Colors.grey,
                   fontSize: 16,
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // Email
-              const Text("Email Address"),
-
+              const Text('Email Address'),
               const SizedBox(height: 8),
-
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
-                  hintText: "name@example.com",
+                  hintText: 'name@example.com',
                   prefixIcon: const Icon(Icons.email),
                   filled: true,
                   fillColor: Colors.grey[200],
@@ -131,14 +127,9 @@ void handleLogin() async {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Password
-              const Text("Password"),
-
+              const Text('Password'),
               const SizedBox(height: 8),
-
               TextField(
                 controller: passwordController,
                 obscureText: isPasswordHidden,
@@ -146,9 +137,7 @@ void handleLogin() async {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      isPasswordHidden
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                      isPasswordHidden ? Icons.visibility : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -164,33 +153,32 @@ void handleLogin() async {
                   ),
                 ),
               ),
-              if(errorMessage!=null)
-              Padding(padding: const EdgeInsets.only(top: 8),
-              child: Text(errorMessage!,
-              style: TextStyle(color: Colors.red),),),
+              if (errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               const SizedBox(height: 10),
-
-              // Forgot password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.pushReplacement(context,                           
-                    MaterialPageRoute(builder: (context) => const ForgotPasswordScreen())
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
+                      ),
                     );
-
                   },
-                  child: const Text("Forgot Password?"),
+                  child: const Text('Forgot Password?'),
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              
-              // Login Button
               GestureDetector(
-                onTap: isLoading ? null :  handleLogin,
-            
+                onTap: isLoading ? null : handleLogin,
                 child: Container(
                   width: double.infinity,
                   height: 55,
@@ -204,60 +192,46 @@ void handleLogin() async {
                     child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
-                            "Login",
+                            'Login',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                  
                   ),
                 ),
-             
-             
               ),
-
               const SizedBox(height: 30),
-
-              // Divider
               Row(
                 children: const [
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Text("OR CONTINUE WITH"),
+                    child: Text('OR CONTINUE WITH'),
                   ),
                   Expanded(child: Divider()),
                 ],
               ),
-
               const SizedBox(height: 20),
-
-              // Social Buttons
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {},
-                      child: const Text("Google"),
+                      child: const Text('Google'),
                     ),
                   ),
-
                   const SizedBox(width: 10),
-
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {},
-                      child: const Text("Apple"),
+                      child: const Text('Apple'),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 30),
-
-              // Sign up
               Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -267,11 +241,13 @@ void handleLogin() async {
                       onTap: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpScreen(),
+                          ),
                         );
                       },
                       child: const Text(
-                        "Sign Up",
+                        'Sign Up',
                         style: TextStyle(
                           color: Colors.orange,
                           fontWeight: FontWeight.bold,
@@ -281,7 +257,6 @@ void handleLogin() async {
                   ],
                 ),
               )
-
             ],
           ),
         ),

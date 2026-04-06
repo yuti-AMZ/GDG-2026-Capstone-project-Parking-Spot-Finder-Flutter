@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({super.key, required String email});
+  const ResetPasswordScreen({super.key});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -17,14 +17,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void resetPassword() {
     if (passwordController.text != confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match")),
+        const SnackBar(content: Text('Passwords do not match')),
       );
       return;
     }
 
-    // mock success
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Password reset successful")),
+      const SnackBar(content: Text('Password reset successful')),
     );
 
     Navigator.pop(context);
@@ -39,7 +38,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         child: Column(
           children: [
             const SizedBox(height: 40),
-
             Row(
               children: [
                 IconButton(
@@ -47,28 +45,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 const Text(
-                  "Reset Password",
+                  'Reset Password',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 )
               ],
             ),
-
             const SizedBox(height: 40),
-
             const Text(
-              "Reset Password",
+              'Reset Password',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 10),
-
             const Text(
-              "Please enter your new password below.",
+              'Please enter your new password below.',
               style: TextStyle(color: Colors.grey),
             ),
-
             const SizedBox(height: 30),
-
             TextField(
               controller: passwordController,
               obscureText: hidePassword,
@@ -90,9 +82,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             TextField(
               controller: confirmController,
               obscureText: hideConfirm,
@@ -114,9 +104,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 30),
-
             GestureDetector(
               onTap: resetPassword,
               child: Container(
@@ -130,7 +118,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
                 child: const Center(
                   child: Text(
-                    "Confirm",
+                    'Confirm',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

@@ -1,7 +1,7 @@
-import 'package:capstone/login.dart';
 import 'package:flutter/material.dart';
 
-import 'service/auth_service.dart';
+import '../../service/auth_service.dart';
+import 'login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -15,26 +15,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   bool isLoading = false;
 
-  void sendResetCode() async {
+  Future<void> sendResetCode() async {
     if (emailController.text.isEmpty) return;
 
     setState(() => isLoading = true);
 
-    final response=await authService.sendOtp(emailController.text); 
+    final response = await authService.sendOtp(emailController.text);
+    if (!mounted) return;
+    setState(() => isLoading = false);
 
-    if (!response.containsKey("error")){
+    if (!response.containsKey('error')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Reset link sent to your email")),
+        const SnackBar(content: Text('Reset link sent to your email')),
       );
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => LoginScreen(),
+          builder: (_) => const LoginScreen(),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["error"] ?? "Failed to send code")),
+        SnackBar(content: Text(response['error'] ?? 'Failed to send code')),
       );
     }
   }
@@ -48,7 +50,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: Column(
           children: [
             const SizedBox(height: 40),
-
             Row(
               children: [
                 IconButton(
@@ -56,37 +57,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 const Text(
-                  "Reset Password",
+                  'Reset Password',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 )
               ],
             ),
-
             const SizedBox(height: 40),
-
             const Icon(Icons.lock_reset, size: 80, color: Colors.orange),
-
             const SizedBox(height: 20),
-
             const Text(
-              "Forgot your keys?",
+              'Forgot your keys?',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 10),
-
             const Text(
-              "Enter your email address to receive a verification code.",
+              'Enter your email address to receive a verification code.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
             ),
-
             const SizedBox(height: 30),
-
             TextField(
               controller: emailController,
               decoration: InputDecoration(
-                hintText: "name@example.com",
+                hintText: 'name@example.com',
                 prefixIcon: const Icon(Icons.email),
                 filled: true,
                 fillColor: Colors.grey[200],
@@ -96,9 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             GestureDetector(
               onTap: isLoading ? null : sendResetCode,
               child: Container(
@@ -114,7 +105,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          "Send Reset Code",
+                          'Send Reset Code',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -123,12 +114,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
             ),
-
             const Spacer(),
-
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Back to Login"),
+              child: const Text('Back to Login'),
             )
           ],
         ),
