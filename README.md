@@ -1,7 +1,6 @@
 # capstone
 
-A new Flutter project for capstone 
-
+A new Flutter project for capstone GDG AASTU 
 ## Getting Started
 
 This project is a starting point for a Flutter application.
