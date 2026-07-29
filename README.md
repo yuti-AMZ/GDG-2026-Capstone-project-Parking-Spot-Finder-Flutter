@@ -1,4 +1,4 @@
-# capstone
+# capstone GDG 
 
 A new Flutter project for capstone GDG AASTU 
 ## Getting Started
